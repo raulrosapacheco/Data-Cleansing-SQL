@@ -71,4 +71,52 @@ FROM data_cleansing.tb_incidents_dup
 )
 SELECT * FROM cte_table WHERE cont > 1;
 
+# Deleting duplicate records with CTE
+SET SQL_SAFE_UPDATES = 0;
 
+WITH cte_table
+AS
+(
+SELECT PdId, Category,
+	ROW_NUMBER() OVER(PARTITION BY PdId ORDER BY PdId) num
+FROM data_cleansing.tb_incidents_dup
+)
+DELETE FROM data_cleansing.tb_incidents_dup
+USING data_cleansing.tb_incidents_dup
+JOIN cte_table ON cte_table.PdId = data_cleansing.tb_incidents_dup.PdId
+WHERE cte_table.num > 1;
+
+SET SQL_SAFE_UPDATES = 1;
+
+# Confirming that there are no more duplicate records
+SELECT PdId, Count(*) num
+FROM data_cleansing.tb_incidents_dup
+GROUP BY PdId
+HAVING num > 1;
+
+# Truncate the table tb_incidents_dup
+
+# Deleting duplicate records with subquery
+SET SQL_SAFE_UPDATES = 0;
+
+DELETE FROM data_cleansing.tb_incidents_dup
+WHERE PdId IN 
+		(
+		SELECT PdId 
+		FROM(
+			SELECT PdId, ROW_NUMBER() OVER(PARTITION BY PdId ORDER BY PdId) num
+			FROM data_cleansing.tb_incidents_dup) q1
+		WHERE q1.num > 1
+        );
+
+SET SQL_SAFE_UPDATES = 1;
+            
+# Confirming that there are no more duplicate records
+SELECT PdId, Count(*) num
+FROM data_cleansing.tb_incidents_dup
+GROUP BY PdId
+HAVING num > 1;        
+
+# The duplicate records that we worked above have all the identical attributes
+# So we can delete any of the duplicate records
+# Now let's work with non-identical lines
