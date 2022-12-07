@@ -120,3 +120,47 @@ HAVING num > 1;
 # The duplicate records that we worked above have all the identical attributes
 # So we can delete any of the duplicate records
 # Now let's work with non-identical lines
+
+# Create Table
+CREATE TABLE data_cleansing.tb_students (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL, 
+    email VARCHAR(255) NOT NULL
+);
+
+# Insert data
+INSERT INTO data_cleansing.tb_students (first_name, last_name, email) 
+VALUES ('Carine ','Schmitt','carine.schmitt@verizon.net'),
+       ('Jean','King','jean.king@me.com'),
+       ('Peter','Ferguson','peter.ferguson@google.com'),
+       ('Janine ','Labrune','janine.labrune@aol.com'),
+       ('Jonas ','Bergulfsen','jonas.bergulfsen@mac.com'),
+       ('Janine ','Labrune','janine.labrune@aol.com'),
+       ('Susan','Nelson','susan.nelson@comcast.net'),
+       ('Zbyszek ','Piestrzeniewicz','zbyszek.piestrzeniewicz@att.net'),
+       ('Roland','Keitel','roland.keitel@yahoo.com'),
+       ('Julie','Murphy','julie.murphy@yahoo.com'),
+       ('Kwai','Lee','kwai.lee@google.com'),
+       ('Jean','King','jean.king@me.com'),
+       ('Susan','Nelson','susan.nelson@comcast.net'),
+       ('Roland','Keitel','roland.keitel@yahoo.com');
+
+SELECT * FROM data_cleansing.tb_students ORDER BY email;
+
+# id <>, email =
+SELECT email, COUNT(*) count
+FROM data_cleansing.tb_students
+GROUP BY email
+HAVING count > 1;
+
+# Deleting duplicates records non-identical
+SET SQL_SAFE_UPDATES = 0;
+
+USE data_cleansing;
+DELETE n1
+FROM tb_students n1, tb_students n2
+WHERE n1.id > n2.id
+AND n1.email = n2.email;
+
+SET SQL_SAFE_UPDATES = 1;
