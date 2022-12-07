@@ -40,6 +40,35 @@ CREATE TABLE data_cleansing.tb_incidents_dup (
 
 # Loading the dataset2.csv via MySQL Workbench
 
-# Query how many duplicate data with the same PdId an Category
-SELECT PdI
+# Query the duplicate data with the same PdId an Category
+SELECT PdId, Category, COUNT(*) count
+FROM data_cleansing.tb_incidents_dup
+GROUP BY PdId, Category
+HAVING count > 1;
+
+# Identifying duplicate records and returning each row in duplicate
+SELECT * FROM data_cleansing.tb_incidents_dup
+WHERE PdId in (SELECT PdId FROM data_cleansing.tb_incidents_dup GROUP BY PdId HAVING COUNT(*) > 1)
+ORDER BY PdId;
+
+# Identifying duplicate records and returning ONE row in duplicate with the window function
+SELECT * 
+FROM( 
+	SELECT *,
+		ROW_NUMBER() OVER(PARTITION BY PdId, Category ORDER BY PdId) row_number1
+	FROM data_cleansing.tb_incidents_dup 
+) d
+WHERE d.row_number1 > 1
+ORDER BY PdId;
+
+# Identifying duplicate records with CTE
+WITH cte_table
+AS 
+(
+SELECT PdId, Category,
+	ROW_NUMBER() OVER(PARTITION BY PdId, Category ORDER BY PdId) cont
+FROM data_cleansing.tb_incidents_dup    
+)
+SELECT * FROM cte_table WHERE cont > 1;
+
 
