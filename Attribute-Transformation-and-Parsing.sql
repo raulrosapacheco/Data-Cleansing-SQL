@@ -15,6 +15,11 @@ UPDATE data_cleansing.tb_sales
 SET commission = 6
 WHERE empID = 2;
 
+UPDATE data_cleansing.tb_sales
+SET commission = 8
+WHERE empID = 3;
+
+SET SQL_SAFE_UPDATES = 1;
 
 
 
