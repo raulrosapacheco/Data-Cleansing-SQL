@@ -41,7 +41,8 @@ WHERE empID = 1;
 # Category 1 = 3 to 5 commission
 # Category 2 = 5.1 to 7.9 commission
 # Category 3 >= 8
-
+SELECT 
+	empID
 
 
 
