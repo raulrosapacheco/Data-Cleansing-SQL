@@ -37,12 +37,22 @@ SELECT empID, ROUND(sale_value*LEAST(2, commission)/100, 0) commission_value
 FROM data_cleansing.tb_sales
 WHERE empID = 1;
 
+SELECT * FROM data_cleansing.tb_sales;
 # Transformation of information from numerical type to categorical type
 # Category 1 = 3 to 5 commission
 # Category 2 = 5.1 to 7.9 commission
 # Category 3 >= 8
 SELECT 
-	empID
+	empID,
+    year,
+    sale_value,
+    CASE 
+		WHEN commission BETWEEN 3 AND 5 THEN 'Category 1'
+		WHEN commission BETWEEN 5.1 AND 7.9 THEN 'Category 2'
+        WHEN commission >= 8 THEN 'Category 3'
+	END AS commission
+FROM data_cleansing.tb_sales;
+    
 
 
 
