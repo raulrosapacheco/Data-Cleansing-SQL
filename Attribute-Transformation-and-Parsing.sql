@@ -135,7 +135,8 @@ FROM data_cleansing.tb_sales;
 SELECT empID, sale_value, commission, data_sale, DATE_FORMAT(data_sale, '%d/%c/%Y') AS data_sale_p
 FROM data_cleansing.tb_sales;
 
-    
+
+
 
 
 
