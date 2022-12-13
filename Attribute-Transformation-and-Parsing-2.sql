@@ -105,3 +105,85 @@ SELECT
 FROM temp_table
 WHERE Deal_Stage = "Won"
 GROUP BY Manager, Regional_Office, Account WITH ROLLUP;
+
+CREATE TABLE data_cleansing.tb_orders_products (
+  sales_agent text,
+  account text,
+  product text,
+  order_value int DEFAULT NULL,
+  create_date text
+);
+
+# Load the dataset7.csv in previous table by MySQL Workbench
+
+SELECT * FROM data_cleansing.tb_orders_products ORDER BY account;
+
+# Function WINDOW
+
+SELECT account, 
+       CAST(create_date AS DATE) AS date_order,
+       AVG(order_value) OVER() AS avg_value_order
+FROM data_cleansing.tb_orders_products
+WHERE account = 'Acme Corporation'
+ORDER BY date_order;
+
+SELECT account, 
+       CAST(create_date AS DATE) AS date_order,
+       order_value,
+       AVG(order_value) OVER(PARTITION BY account ORDER BY CAST(create_date AS DATE)) AS avg_value_order
+FROM data_cleansing.tb_orders_products
+WHERE account = 'Acme Corporation'
+ORDER BY date_order;
+
+# Function FIRST_VALUE
+SELECT account, 
+       CAST(create_date AS DATE) AS date_order,
+       order_value,
+       FIRST_VALUE(order_value) OVER(PARTITION BY account ORDER BY CAST(create_date AS DATE)) AS firt_value_order
+FROM data_cleansing.tb_orders_products
+WHERE account = 'Acme Corporation'
+ORDER BY date_order;
+
+# LEAD: Moving data backwards over time, 1 position and when empty padded with -1
+SELECT account, 
+       CAST(create_date AS DATE) AS date_order,
+       order_value,
+       LEAD(order_value, 1, -1) OVER(PARTITION BY account ORDER BY CAST(create_date AS DATE)) AS lead_value_order
+FROM data_cleansing.tb_orders_products
+WHERE account = 'Acme Corporation'
+ORDER BY date_order;
+
+# LAG: Moving data forward over time, 1 position and when empty padded with -1
+SELECT account, 
+       CAST(create_date AS DATE) AS date_order,
+       order_value,
+       LAG(order_value, 1, -1) OVER(PARTITION BY account ORDER BY CAST(create_date AS DATE)) AS lag_value_order
+FROM data_cleansing.tb_orders_products
+WHERE account = 'Acme Corporation'
+ORDER BY date_order;
+
+# Calculate the difference between the order value of the day and the previous day.
+SELECT account, 
+       CAST(create_date AS DATE) AS date_order,
+       order_value,
+       LAG(order_value, 1, 0) OVER(PARTITION BY account ORDER BY CAST(create_date AS DATE)) AS lag_value_order,
+       order_value - LAG(order_value, 1, 0) OVER(PARTITION BY account ORDER BY CAST(create_date AS DATE)) AS lag_value_order
+FROM data_cleansing.tb_orders_products
+WHERE account = 'Acme Corporation';
+
+WITH temp_table AS
+(
+SELECT account, 
+       CAST(create_date AS DATE) AS date_order,
+       order_value,
+       LAG(order_value, 1, 0) OVER(PARTITION BY account ORDER BY CAST(create_date AS DATE)) AS lag_value_order
+FROM data_cleansing.tb_orders_products
+WHERE account = 'Acme Corporation'
+ORDER BY date_order
+)
+SELECT account,
+       date_order,
+       order_value,
+       lag_value_order,
+       (order_value - lag_value_order) AS diff
+FROM temp_table;
