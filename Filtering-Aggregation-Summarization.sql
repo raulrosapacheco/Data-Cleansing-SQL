@@ -51,13 +51,14 @@ FROM data_cleansing.tb_pipeline_sales;
 # 6- Minimum amount sold among successfully completed sales
 SELECT MIN(CAST(Close_Value AS UNSIGNED)) min_amount 
 FROM data_cleansing.tb_pipeline_sales
-WHERE Close_Value > 0;
+WHERE Deal_Stage = 'Won';
 
 # 7- Average value of successfully completed sales per sales agent
 SELECT Sales_Agent, AVG(CAST(Close_Value AS UNSIGNED)) avg_amount 
 FROM data_cleansing.tb_pipeline_sales
 WHERE Deal_Stage = 'Won'
-GROUP BY Sales_Agent;
+GROUP BY Sales_Agent
+ORDER BY avg_amount DESC;
 
 #8- Average value of successfully completed sales per sales agent manager
 SELECT S.Manager, AVG(CAST(P.Close_Value AS UNSIGNED)) avg_amount 
@@ -71,23 +72,39 @@ SELECT Sales_Agent, Account, SUM(CAST(Close_Value AS UNSIGNED)) sum_amount
 FROM data_cleansing.tb_pipeline_sales
 WHERE Deal_Stage = 'Won'
 GROUP BY Sales_Agent, Account
-ORDER BY Sales_Agent;
+ORDER BY Sales_Agent, Account;
 
 # 10- Number of sales per sales agent for successfully completed sales and sales value greater than 1000
+
+# There is a filter function called FILTER(), but it is not available in MySQL
+# https://modern-sql.com/feature/filter
+
+# Doesn't work in MySQL
+SELECT sales_agent,
+       COUNT(tbl.close_value) AS total,
+       COUNT(tbl.close_value)
+FILTER(WHERE tbl.close_value > 1000) AS `Acima de 1000`
+FROM cap08.TB_PIPELINE_VENDAS AS tbl
+WHERE tbl.deal_stage = "Won"
+GROUP BY tbl.sales_agent;
+
+# Solution in MySQL
 SELECT Sales_Agent, COUNT(CAST(Close_Value AS UNSIGNED)) num_sales 
 FROM data_cleansing.tb_pipeline_sales
 WHERE Deal_Stage = 'Won'
 AND Close_Value > 1000
 GROUP BY Sales_Agent;
+
 # 11- Number of sales and average sales value per sales agent
-SELECT Sales_Agent, COUNT(CAST(Close_Value AS UNSIGNED)) num_sales, AVG(CAST(Close_Value AS UNSIGNED)) avg_value  
+SELECT Sales_Agent, 
+	COUNT(CAST(Close_Value AS UNSIGNED)) num_sales, 
+    AVG(CAST(Close_Value AS UNSIGNED)) avg_value  
 FROM data_cleansing.tb_pipeline_sales
-WHERE Deal_Stage = 'Won'
-GROUP BY Sales_Agent;
+GROUP BY Sales_Agent
+ORDER BY num_sales DESC;
 
 #12- Which sales agents had more than 30 sales?
 SELECT Sales_Agent, COUNT(CAST(Close_Value AS UNSIGNED)) num_sales, AVG(CAST(Close_Value AS UNSIGNED)) avg_value  
 FROM data_cleansing.tb_pipeline_sales
-WHERE Deal_Stage = 'Won'
 GROUP BY Sales_Agent
 HAVING num_sales > 30;
